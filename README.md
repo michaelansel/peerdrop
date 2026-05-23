@@ -3,8 +3,7 @@
 Peer-to-peer file transfer between two desktop browsers, with a 6-digit verification
 code that catches an active man-in-the-middle on the signaling broker.
 
-Live demo: https://michaelansel.github.io/scan2share/ (repo will be renamed to `PeerDrop`
-later; the URL will follow).
+Live demo: https://michaelansel.github.io/peerdrop/
 
 ## How it works
 
@@ -112,21 +111,12 @@ The E2E suite covers:
 `./.github/workflows/deploy.yml` runs on push to `main`:
 
 1. Install, typecheck, unit + E2E tests.
-2. `vite build` with the production base path (`/scan2share/` until the repo is renamed).
+2. `vite build` with the production base path (`/peerdrop/`, set in `vite.config.ts`).
 3. Verify the `?broker=` override parser was tree-shaken out.
 4. Upload + deploy to GitHub Pages via `actions/deploy-pages@v4`.
 
 Branch protection on `main` is recommended (require PR review, require CI green,
 require linear history) and is left to the repo owner to configure.
-
-## Repo rename checklist (when `scan2share` → `PeerDrop`)
-
-1. `vite.config.ts`: change `REPO_BASE` from `/scan2share/` to `/PeerDrop/`.
-2. `README.md`: update the deployed URL.
-3. `package.json`: update `repository.url` (the package `name` is already `peerdrop`).
-4. Update the GitHub Pages settings in the repo to keep `main` as the source.
-5. **No crypto changes needed.** Domain strings `peerdrop/commit/v1` / `peerdrop/sas/v1`
-   are independent of the repo name.
 
 ## License
 

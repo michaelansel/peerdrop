@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 
-const REPO_BASE = '/scan2share/';
+const REPO_BASE = '/peerdrop/';
 
 export default defineConfig(({ mode }) => ({
   base: mode === 'production' ? REPO_BASE : '/',
