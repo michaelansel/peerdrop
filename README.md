@@ -26,10 +26,13 @@ Live demo: https://michaelansel.github.io/peerdrop/
 
 - Passive eavesdroppers on the broker hop and beyond.
 - An actively malicious PeerJS broker: SDP-fingerprint substitution, forged commits or
-  reveals, message reordering, forged `confirm` messages.
+  reveals, message reordering, forged `confirm` messages. Every `a=fingerprint` line in a
+  relayed SDP must be SHA-256 and identical, so a broker cannot pass the verified value on
+  one line while the browser pins a different cert on another.
 - Peer-id squatting / dial races on the public broker (the squatted side hard-stops and
   the SAS comparison still catches MITM).
 - Replay of stale signaling messages across sessions or roles.
+- Clickjacking of the SAS-confirm click: the app refuses to render inside a frame.
 
 **Out of scope** (residual risks):
 

@@ -53,4 +53,36 @@ describe('sdp fingerprint', () => {
     expect(extractFingerprint(tamperedSdp)).not.toBe(CANONICAL);
     expect(sdpFingerprintMatches(tamperedSdp, CANONICAL)).toBe(false);
   });
+
+  const OTHER_WIRE =
+    '11:22:33:44:55:66:77:88:99:00:AA:BB:CC:DD:EE:FF:11:22:33:44:55:66:77:88:99:00:AA:BB:CC:DD:EE:FF';
+
+  it('rejects an SDP carrying two conflicting sha-256 fingerprint lines', () => {
+    // Active-broker trick: a session-level line equal to the value we expect (to slip past
+    // a first-match check) plus a media-level line pinning the broker's own DTLS cert.
+    const dual =
+      `v=0\r\no=- 1 1 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\n` +
+      `a=fingerprint:sha-256 ${SDP_WIRE}\r\n` +
+      `m=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\nc=IN IP4 0.0.0.0\r\n` +
+      `a=fingerprint:sha-256 ${OTHER_WIRE}\r\na=setup:actpass\r\na=mid:0\r\n`;
+    expect(() => extractFingerprint(dual)).toThrow(SdpParseError);
+    // A malformed/ambiguous SDP surfaces as a parse error (the state machine catches it and
+    // aborts), never as a silent "matches" result.
+    expect(() => sdpFingerprintMatches(dual, CANONICAL)).toThrow(SdpParseError);
+  });
+
+  it('rejects an SDP mixing sha-256 with another algorithm', () => {
+    const mixed =
+      `v=0\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\n` +
+      `a=fingerprint:sha-256 ${SDP_WIRE}\r\n` +
+      `a=fingerprint:sha-512 ${SDP_WIRE}:${SDP_WIRE}\r\n`;
+    expect(() => extractFingerprint(mixed)).toThrow(SdpParseError);
+  });
+
+  it('accepts duplicate fingerprint lines that carry the identical value', () => {
+    const dup =
+      `v=0\r\na=fingerprint:sha-256 ${SDP_WIRE}\r\n` +
+      `m=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\na=fingerprint:sha-256 ${SDP_WIRE}\r\n`;
+    expect(extractFingerprint(dup)).toBe(CANONICAL);
+  });
 });

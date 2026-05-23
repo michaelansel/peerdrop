@@ -184,6 +184,23 @@ describe('receiver edge cases', () => {
     expect(errors[0]).toBe('duplicate-meta');
   });
 
+  it('rejects DONE when received bytes disagree with the declared size', () => {
+    const errors: string[] = [];
+    const receiver = new FileReceiver({ send: () => undefined });
+    receiver.on('error', (e) => errors.push(e.reason));
+    // Declare 200 bytes but deliver a single 100-byte chunk that satisfies totalChunks.
+    const meta = { id: 'x', name: 'f', size: 200, chunkSize: 100, totalChunks: 1 };
+    const enc = new Uint8Array(1 + new TextEncoder().encode(JSON.stringify(meta)).length);
+    enc[0] = FRAME.META;
+    enc.set(new TextEncoder().encode(JSON.stringify(meta)), 1);
+    receiver.handleFrame(enc);
+    const chunk = new Uint8Array(5 + 100);
+    chunk[0] = FRAME.CHUNK; // seq 0, 100-byte body
+    receiver.handleFrame(chunk);
+    receiver.handleFrame(new Uint8Array([FRAME.DONE]));
+    expect(errors[0]).toBe('size-mismatch');
+  });
+
   it('treats receiving an ACK as a protocol error', () => {
     const errors: string[] = [];
     const receiver = new FileReceiver({ send: () => undefined });

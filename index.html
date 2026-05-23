@@ -3,10 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; connect-src 'self' blob: wss://0.peerjs.com:443 https://0.peerjs.com:443 wss://*.peerjs.com https://*.peerjs.com ws://localhost:* http://localhost:* ws://127.0.0.1:* http://127.0.0.1:*; img-src 'self' data:; script-src 'self'; style-src 'self' 'unsafe-inline';"
-    />
+    <!-- Content-Security-Policy is injected per-mode by the Vite config (strict in prod). -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>PeerDrop</title>
     <link rel="stylesheet" href="/src/styles.css" />
