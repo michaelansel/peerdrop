@@ -114,6 +114,10 @@ export class FileReceiver {
       this.fail('done-with-missing-chunks');
       return;
     }
+    if (this.receivedBytes !== this.meta.size) {
+      this.fail('size-mismatch');
+      return;
+    }
     const blob = new Blob(this.buffers as unknown as BlobPart[], {
       type: 'application/octet-stream',
     });
