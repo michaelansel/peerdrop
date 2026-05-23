@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   PairingStateMachine,
   STATE_TIMEOUT_MS,
@@ -8,7 +8,6 @@ import {
 } from '../../src/pairing/state.js';
 import type { WireMessage } from '../../src/signaling/messages.js';
 import { computeCommit, oppositeRole, type Role } from '../../src/pairing/commit.js';
-import { randomHex } from '../../src/utils/hash.js';
 
 /** Minimal RTCPeerConnection stub usable in jsdom (no real WebRTC). */
 function fakePc(opts: { role: Role; localFp: string }): {
@@ -113,7 +112,9 @@ function buildHarness(overrides: Partial<PairingDependencies> = {}): Harness {
     selfPeerId: overrides.selfPeerId ?? 'ABC-123',
     peerPeerId: overrides.peerPeerId ?? 'XYZ-789',
     send: overrides.send ?? ((m: WireMessage) => sent.push(m)),
-    nonceOverride: overrides.nonceOverride ?? '1'.repeat(32),
+    // An explicit `nonceOverride: undefined` opts into a fresh random nonce; omitting
+    // the key gives the deterministic test default.
+    nonceOverride: 'nonceOverride' in overrides ? overrides.nonceOverride : '1'.repeat(32),
     timeoutMs: overrides.timeoutMs ?? STATE_TIMEOUT_MS,
   };
   const sm = new PairingStateMachine(deps);
@@ -350,17 +351,17 @@ describe('PairingStateMachine — abort + timeout', () => {
 });
 
 describe('PairingStateMachine — generated nonces are fresh per instance', () => {
-  beforeEach(() => {
-    // The nonce-fresh test relies on real crypto, not jsdom fakes.
-  });
-  it('two state machines with no override get different nonces', () => {
+  it('two instances with identical inputs emit different commits (fresh random nonce)', async () => {
     const h1 = buildHarness({ nonceOverride: undefined as unknown as string });
     const h2 = buildHarness({ nonceOverride: undefined as unknown as string });
-    // We can't inspect the private nonce field, but we can verify that two random hex
-    // strings from the underlying helper differ (probabilistic but overwhelmingly so).
-    void h1;
-    void h2;
-    expect(randomHex(16)).not.toBe(randomHex(16));
+    await h1.sm.start();
+    await h2.sm.start();
+    const c1 = h1.sent.find((m) => m.type === 'commit');
+    const c2 = h2.sent.find((m) => m.type === 'commit');
+    expect(c1?.type).toBe('commit');
+    expect(c2?.type).toBe('commit');
+    // Same peer-ids, role, and fp; the only differing input is the per-instance nonce.
+    expect((c1 as { commit: string }).commit).not.toBe((c2 as { commit: string }).commit);
   });
 });
 

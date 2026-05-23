@@ -1,4 +1,3 @@
-import { bytesToHex } from '../utils/hash.js';
 import { extractFingerprint } from './sdp.js';
 
 export const STUN_SERVERS: RTCIceServer[] = [
@@ -56,5 +55,3 @@ async function readCertFingerprint(cert: RTCCertificate): Promise<string> {
     tmp.close();
   }
 }
-
-void bytesToHex; // re-exported via utils/hash

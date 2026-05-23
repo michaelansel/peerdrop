@@ -18,16 +18,6 @@ export async function openApp(browser: Browser): Promise<{
 }> {
   const context = await browser.newContext();
   const page = await context.newPage();
-  page.on('console', (msg) => {
-    if (msg.type() === 'error' || msg.type() === 'warning') {
-      // eslint-disable-next-line no-console
-      console.log(`[page ${msg.type()}] ${msg.text()}`);
-    }
-  });
-  page.on('pageerror', (err) => {
-    // eslint-disable-next-line no-console
-    console.log(`[page error] ${err.message}\n${err.stack ?? ''}`);
-  });
   await page.goto(`/?broker=${encodeURIComponent(BROKER_URL)}`);
   // Wait for either the idle panel (success) or the taken panel (failure).
   await page.waitForFunction(() => {

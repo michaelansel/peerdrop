@@ -5,27 +5,15 @@
 export const CROCKFORD_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 export const PEER_ID_LENGTH = 6;
 
-const ALPHABET_BYTES = new Uint8Array(
-  Array.from(CROCKFORD_ALPHABET).map((c) => c.charCodeAt(0)),
-);
-
 /** Generate a new random peer-id in display form (XXX-XXX). */
 export function generatePeerId(): string {
-  // Reject-sample to remove modulo bias: bytes 0..255, accept only < 256 - (256 % 32).
-  const maxAcceptable = 256 - (256 % CROCKFORD_ALPHABET.length); // 256
+  // 32 divides 256 evenly, so a plain `byte % 32` index has no modulo bias.
   const out = new Array<string>(PEER_ID_LENGTH);
-  let i = 0;
-  while (i < PEER_ID_LENGTH) {
-    const buf = new Uint8Array(PEER_ID_LENGTH - i);
-    crypto.getRandomValues(buf);
-    for (let j = 0; j < buf.length && i < PEER_ID_LENGTH; j++) {
-      const b = buf[j]!;
-      if (b < maxAcceptable) {
-        out[i++] = CROCKFORD_ALPHABET[b % CROCKFORD_ALPHABET.length]!;
-      }
-    }
+  const buf = new Uint8Array(PEER_ID_LENGTH);
+  crypto.getRandomValues(buf);
+  for (let i = 0; i < PEER_ID_LENGTH; i++) {
+    out[i] = CROCKFORD_ALPHABET[buf[i]! % CROCKFORD_ALPHABET.length]!;
   }
-  void ALPHABET_BYTES;
   return formatPeerId(out.join(''));
 }
 

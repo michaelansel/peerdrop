@@ -43,9 +43,12 @@ Live demo: https://michaelansel.github.io/peerdrop/
 - Long-term identity continuity (TOFU pinning across sessions) — not implemented in v1.
 - Networks where symmetric NAT prevents direct WebRTC. No TURN is configured.
 
-For the protocol details and proof of why a 6-digit code is unforgeable under this
-threat model, see `/root/.claude/plans/create-this-proposed-application-velvety-muffin.md`
-(the design plan stored alongside the work).
+Why 6 digits is enough: a naive SAS could be brute-forced by an active broker that
+substitutes fingerprints until the codes on both screens happen to collide. The
+commit-then-reveal step removes that freedom — each side commits to its fingerprint
+(under a 128-bit nonce) *before* seeing the other's, so the broker would have to commit
+to a forgery before it knows what it needs to match. That reduces its odds to a single
+1-in-10^6 guess per session, with no opportunity to grind.
 
 ## Run locally
 

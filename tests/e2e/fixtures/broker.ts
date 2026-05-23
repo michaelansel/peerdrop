@@ -3,7 +3,6 @@ import http from 'node:http';
 // We import express directly because PeerServer (the convenience wrapper) doesn't expose
 // the underlying http.Server, which makes a clean shutdown impossible. peer brings express
 // in transitively, so importing it adds no real cost.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 import express from 'express';
 
 export interface RunningBroker {

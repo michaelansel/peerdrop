@@ -1,7 +1,6 @@
 import { startBroker, type RunningBroker } from './broker.js';
 
 declare global {
-  // eslint-disable-next-line no-var
   var __PEERDROP_BROKER__: RunningBroker | undefined;
 }
 

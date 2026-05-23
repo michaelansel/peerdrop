@@ -36,29 +36,24 @@ test('app handles peer-id collision/squat by either succeeding or hard-stopping'
 });
 
 /**
- * Forging a remote `confirm` over the broker DataConnection should NOT enable the
- * drop-zone — only the local Confirm click can. We exercise this by injecting a
- * confirm message into the state machine on B before A confirms, then asserting
- * B's drop-zone is absent.
+ * The drop-zone is gated behind the local Confirm click: reaching the SAS step is not
+ * enough. The cryptographic guarantee that a forged remote `confirm` cannot advance the
+ * state machine is covered at the unit level in state.test.ts; here we check the UI
+ * invariant that no drop-zone is rendered until the local user confirms.
  */
-test('forged remote confirm does not enable the drop-zone', async ({ browser }) => {
+test('drop-zone is not shown until the local user confirms', async ({ browser }) => {
   const a = await openApp(browser);
   const b = await openApp(browser);
 
-  // A dials B
   await a.page.fill('[data-testid="dial-input"]', b.selfPeerId);
   await a.page.click('[data-testid="dial-button"]');
 
-  // Wait for both to reach SAS display.
   await Promise.all([
     a.page.waitForSelector('[data-testid="sas-display"]', { timeout: 30_000 }),
     b.page.waitForSelector('[data-testid="sas-display"]', { timeout: 30_000 }),
   ]);
 
-  // Inject a forged-confirm by closing the broker channel on B. The remote-confirmed
-  // flag should not advance without a local click.
-  // (Full broker MITM injection is out of scope for the smoke check; state.test.ts
-  // covers the cryptographic flows with mock channels.)
+  expect(await a.page.$('[data-testid="drop-zone"]')).toBeNull();
   expect(await b.page.$('[data-testid="drop-zone"]')).toBeNull();
 
   await a.context.close();

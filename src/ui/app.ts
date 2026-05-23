@@ -122,8 +122,6 @@ async function start(refs: Refs, opts: AppOptions): Promise<void> {
       const ch = await signaling.dial(normalized);
       await handleConnection(ch, normalized, 'dialer');
     } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('[peerdrop] dial failed', err);
       renderIdleWithError(refs, state, err instanceof Error ? err.message : String(err));
     }
   });
