@@ -48,8 +48,11 @@ jobs:
 
       - name: Verify ?broker= override stripped from prod bundle
         run: |
-          if grep -l "URLSearchParams.*broker" dist/assets/*.js dist/*.js 2>/dev/null | head -1; then
-            echo "ERROR: ?broker= override leaked into production bundle"
+          # The dev-only ?broker= parser is the sole user of URLSearchParams; Vite's
+          # `define` + dead-code elimination must remove it from the production bundle.
+          # grep exits 0 on a match, so a match here fails the build.
+          if grep -rl "URLSearchParams" dist/assets; then
+            echo "ERROR: ?broker= override parser leaked into production bundle"
             exit 1
           fi
           echo "OK: production bundle does not parse ?broker="
@@ -72,6 +75,10 @@ jobs:
     steps:
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          # Auto-enable Pages (build type "workflow") so the first deploy doesn't fail
+          # if Pages hasn't been turned on in repo settings yet.
+          enablement: true
 
       - name: Deploy
         id: deployment
